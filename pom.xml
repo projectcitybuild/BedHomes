@@ -3,7 +3,7 @@
   	<groupId>org.jabelpeeps</groupId>
   	<artifactId>BedHomes</artifactId>
 	<packaging>jar</packaging>
-  	<version>0.0.1-SNAPSHOT</version>
+  	<version>0.1.build-${env.BUILD_NUMBER}</version>
   	<description>provide a simple /home command</description>
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -41,6 +41,7 @@
           	<plugin>
              	<groupId>org.apache.maven.plugins</groupId>
               	<artifactId>maven-compiler-plugin</artifactId>
+              	<version>3.2</version>
              	<configuration>
                 	<source>1.8</source>
                     <target>1.8</target>
@@ -49,6 +50,7 @@
           	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
 			</plugin>
       	</plugins>
    	</build>
