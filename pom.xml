@@ -4,7 +4,7 @@
   	<artifactId>BedHomes</artifactId>
 	<packaging>jar</packaging>
   	<version>0.1.build#${env.BUILD_NUMBER}</version>
-  	<description>provide a simple /home command</description>
+  	<description>provide a simple /bed command</description>
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<craftbukkit.version>1.9.4-R0.1</craftbukkit.version>

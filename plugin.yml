@@ -3,6 +3,6 @@ main: org.jabelpeeps.bedhomes.BedHomes
 version: ${project.version}
 author: Jabelpeeps
 commands:
-  home:
+  bed:
     description: Returns you to the last bed you used.
-    usage: /home
+    usage: /bed

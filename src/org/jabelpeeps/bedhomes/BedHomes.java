@@ -13,7 +13,7 @@ public class BedHomes extends JavaPlugin {
     @Override
     public boolean onCommand( CommandSender sender, Command cmd, String label, String[] args ) {
         
-        if ( sender instanceof Player && cmd.getName().equalsIgnoreCase( "home" ) ) { 
+        if ( sender instanceof Player && cmd.getName().equalsIgnoreCase( "bed" ) ) { 
             
             Player player = (Player) sender;
             Location bed = player.getBedSpawnLocation();
