@@ -43,7 +43,7 @@ public class BedHomes extends JavaPlugin implements Listener {
         long time = player.getWorld().getTime();
         
         // do nothing in day time
-        if ( time > 6000 && time < 18000 ) return;
+  //      if ( time > 6000 && time < 18000 ) return;
         // TODO consider adding a message to players telling them to sleep at night to set their /home location.
         
         if ( debug ) logger.log( Level.INFO, "Player " + player.getName() + " is using a bed, at time:- " + String.valueOf( time ));
