@@ -3,7 +3,7 @@
   	<groupId>org.jabelpeeps</groupId>
   	<artifactId>BedHomes</artifactId>
 	<packaging>jar</packaging>
-  	<version>0.1.build-${env.BUILD_NUMBER}</version>
+  	<version>0.1.build#${env.BUILD_NUMBER}</version>
   	<description>provide a simple /home command</description>
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
