@@ -1,0 +1,8 @@
+name: BedHomes
+main: org.jabelpeeps.bedhomes.BedHomes
+version: ${project.version}
+author: Jabelpeeps
+commands:
+  home:
+    description: Returns you to the last bed you used.
+    usage: /home
