@@ -2,7 +2,7 @@ name: BedHomes
 main: org.jabelpeeps.bedhomes.BedHomes
 version: ${project.version}
 author: Jabelpeeps
-softdepend: Vault
+softdepend: [Vault]
 
 commands:
   home:
