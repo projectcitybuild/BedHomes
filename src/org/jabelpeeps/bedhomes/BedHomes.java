@@ -37,19 +37,23 @@ public class BedHomes extends JavaPlugin implements Listener {
     private Logger logger = getLogger();
     private Map<UUID, Location> beds = new HashMap<>();
     
-    private File bedsYml = new File(getDataFolder(), "beds.yml");
+    private File bedsYml;
     private FileConfiguration saveData;
     
     @Override
     public void onEnable() {
         
+        bedsYml = new File(getDataFolder(), "beds.yml");
+        saveData = YamlConfiguration.loadConfiguration( bedsYml );
+        
         Bukkit.getPluginManager().registerEvents( this, this );
         ConfigurationSerialization.registerClass( Location.class );
-        saveData = YamlConfiguration.loadConfiguration( bedsYml );
        
         for ( String each : saveData.getKeys( false ) ) {
-            Location location = Location.deserialize( saveData.getConfigurationSection( each ).getValues( false ) );
-            beds.put( UUID.fromString( each ), location );
+            
+            beds.put( UUID.fromString( each ), 
+                      Location.deserialize( saveData.getConfigurationSection( each )
+                                                    .getValues( false ) ) );
         }
         
         // TODO add code to load configuration file - when there are some configuration options to load.
@@ -62,10 +66,12 @@ public class BedHomes extends JavaPlugin implements Listener {
         for ( Entry<UUID, Location> each : beds.entrySet() ) {
             saveData.createSection( each.getKey().toString(), each.getValue().serialize() );
         }
+        
         try {
             saveData.save( bedsYml );
             
         } catch ( IOException e ) {
+            logger.log( Level.SEVERE, "Bedhomes was unable to save beds.yml, all bed locations will be lost."  );
             e.printStackTrace();
         }
     }
@@ -84,7 +90,7 @@ public class BedHomes extends JavaPlugin implements Listener {
         }    
     }
     
-    @EventHandler( priority=EventPriority.MONITOR )
+    @EventHandler( priority=EventPriority.MONITOR, ignoreCancelled = true )
     public void onUsingBed( PlayerBedEnterEvent event ) {
         // records the location where the player was standing when they clicked the bed
         // (which is assumed to be safe to return them to).
@@ -100,8 +106,9 @@ public class BedHomes extends JavaPlugin implements Listener {
         beds.put( player.getUniqueId(), bed );
     }
     
-    @EventHandler( priority=EventPriority.MONITOR )
+    @EventHandler( priority = EventPriority.MONITOR, ignoreCancelled = true )
     public void onBreakingBeds( BlockBreakEvent event ) {
+        // removes beds that get broken from the hashmap. Priority = MONITOR to respect the block/grief protection plugins
         
         Block block = event.getBlock();
         
@@ -111,7 +118,7 @@ public class BedHomes extends JavaPlugin implements Listener {
             
             for ( Entry<UUID, Location> each : beds.entrySet() ) {
                 
-                if ( block.getLocation().distanceSquared( each.getValue() ) > 5 ) {
+                if ( block.getLocation().distanceSquared( each.getValue() ) < 5 ) {
                     
                     uuid = each.getKey();
                     
