@@ -1,0 +1,1 @@
+[![Build Status](https://jabelpeeps.org/jenkins/job/BedHomes/badge/icon)](https://jabelpeeps.org/jenkins/job/BedHomes)

@@ -211,7 +211,7 @@ public class BedHomes extends JavaPlugin implements Listener {
                         ChatColor.YELLOW.toString().concat( "No saved bed location for you.  Did you sleep in one yet?" ) );
                 return true;
             }
-            if ( economy != null && economy.has( player, cost ) ) {
+            if ( economy != null && !economy.has( player, cost ) ) {
                 player.sendMessage( String.join( "", 
                         ChatColor.YELLOW.toString(), "using /home costs ", 
                         String.valueOf( cost ), economy.currencyNamePlural(), " each time you use it." ) );
