@@ -209,7 +209,7 @@ public class BedHomes extends JavaPlugin implements Listener {
                         ChatColor.YELLOW.toString().concat( "No saved bed location for you.  Did you sleep in one yet?" ) );
                 return true;
             }
-            if ( economy.getBalance( player ) < cost ) {
+            if ( economy != null && economy.has( player, cost ) ) {
                 player.sendMessage( String.join( "", 
                         ChatColor.YELLOW.toString(), "using /home costs ", 
                         String.valueOf( cost ), economy.currencyNamePlural(), " each time you use it." ) );
@@ -260,7 +260,7 @@ public class BedHomes extends JavaPlugin implements Listener {
         public void run() {
             warmups.remove( p.getUniqueId() );
             
-            if ( economy.withdrawPlayer( p, cost ).transactionSuccess() )
+            if ( economy == null || economy.withdrawPlayer( p, cost ).transactionSuccess() )
                 p.teleport( loc, TeleportCause.COMMAND );
             else
                 p.sendMessage( String.join( "", 
