@@ -1,0 +1,8 @@
+# Players need to remain unmoving for the duration of the warmup period, otherwise the teleport will be cancelled.
+# warmup is configured in whole seconds, set to 0 to disable
+warmup: 5
+# Setting of a cost per use requires the Vault plugin, and a supported Economy provider.
+# The cost configured here is the number of your server's main currency units that each use of /home will cost.
+# Players with insufficient funds will not teleport, and will get a message.
+# Set to 0 to disable.
+cost: 50

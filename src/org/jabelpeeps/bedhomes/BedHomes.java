@@ -27,21 +27,58 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
+import net.milkbowl.vault.economy.Economy;
 
 
 public class BedHomes extends JavaPlugin implements Listener {
 
     private boolean debug = true;
-    private Logger logger = getLogger();
-    private Map<UUID, Location> beds = new HashMap<>();
+    Logger logger = getLogger();
+    public static Economy economy = null;
     
-    private File bedsYml;
-    private FileConfiguration saveData;
+    // TODO maybe implement other databases/storage for the location data.   
+    Map<UUID, Location> beds = new HashMap<>();
+    static Map<UUID, BukkitTask> warmups = new HashMap<>();
     
+    private String logonMsg;
+    private String brokenMsg;
+    
+    private int warmupDelay;
+    static int cost;
+    
+    File bedsYml;
+    FileConfiguration saveData;
+    
+    private final BukkitRunnable saveBeds = new BukkitRunnable() {
+        @Override
+        public void run() {
+            
+            for ( Entry<UUID, Location> each : beds.entrySet() ) {
+                saveData.createSection( each.getKey().toString(), each.getValue().serialize() );
+            }
+            
+            try {
+                saveData.save( bedsYml );                
+            } catch ( IOException e ) {
+                logger.log( Level.SEVERE, "Bedhomes was unable to save beds.yml, all bed locations will be lost." );
+                e.printStackTrace();
+            }
+        }
+    };
+     
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+        FileConfiguration config = getConfig();
+        warmupDelay = config.getInt( "warmup" );
+        cost = config.getInt( "cost" );
         
         bedsYml = new File(getDataFolder(), "beds.yml");
         saveData = YamlConfiguration.loadConfiguration( bedsYml );
@@ -49,33 +86,38 @@ public class BedHomes extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents( this, this );
         ConfigurationSerialization.registerClass( Location.class );
        
+        // load the saved bed locations.
         for ( String each : saveData.getKeys( false ) ) {
             
             beds.put( UUID.fromString( each ), 
                       Location.deserialize( saveData.getConfigurationSection( each )
                                                     .getValues( false ) ) );
         }
+        if ( !setupEconomy() ) 
+            logger.log( Level.WARNING, "Vault plugin not found, cost per command will not function.");
         
-        // TODO add code to load configuration file - when there are some configuration options to load.
+        // saves the bed locations every 10 mins.
+        saveBeds.runTaskTimerAsynchronously( this, 12000, 12000 );
+    }
+    
+    private boolean setupEconomy() {
+        if ( Bukkit.getPluginManager().getPlugin("Vault") == null ) return false;
+        
+        RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration( Economy.class );
+        if ( rsp == null ) return false;
+        
+        economy = rsp.getProvider();
+        return economy != null;
     }
     
     @Override
-    public void onDisable() {        
-        // TODO maybe implement other databases/storage for the location data.
-        
-        for ( Entry<UUID, Location> each : beds.entrySet() ) {
-            saveData.createSection( each.getKey().toString(), each.getValue().serialize() );
-        }
-        
-        try {
-            saveData.save( bedsYml );
-            
-        } catch ( IOException e ) {
-            logger.log( Level.SEVERE, "Bedhomes was unable to save beds.yml, all bed locations will be lost."  );
-            e.printStackTrace();
-        }
+    public void onDisable() {  
+       
+        Bukkit.getScheduler().cancelTasks( this );
+        // one last run of the save routine before shutdown.
+        saveBeds.run();          
     }
-     
+    
     @EventHandler
     public void onPlayerJoining( PlayerJoinEvent event ) {
         // sends a message to players telling them to set their beds in the new plugin.
@@ -83,14 +125,20 @@ public class BedHomes extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         
         if ( !beds.containsKey( player.getUniqueId() ) ) {
-            player.sendMessage( String.join( "", ChatColor.RED.toString(), "IMPORTANT:", 
-                    ChatColor.RESET.toString(), "We have a new plugin providing /home, you need ",
-                    ChatColor.RED.toString(), "to sleep in your bed again", 
-                    ChatColor.RESET.toString(), " to re-link with the command." ) );
+            
+            if ( logonMsg == null )
+                logonMsg = String.join( "", 
+                        ChatColor.RED.toString(), ChatColor.BOLD.toString(), "IMPORTANT: ", System.lineSeparator(),
+                        ChatColor.RESET.toString(), "There is a new plugin providing /home, you need to ",
+                        ChatColor.RED.toString(), "sleep in your bed again", 
+                        ChatColor.RESET.toString(), " to re-link the command." );
+            
+            player.sendMessage( logonMsg );
         }    
     }
     
-    @EventHandler( priority=EventPriority.MONITOR, ignoreCancelled = true )
+    
+    @EventHandler( priority = EventPriority.MONITOR, ignoreCancelled = true )
     public void onUsingBed( PlayerBedEnterEvent event ) {
         // records the location where the player was standing when they clicked the bed
         // (which is assumed to be safe to return them to).
@@ -106,9 +154,11 @@ public class BedHomes extends JavaPlugin implements Listener {
         beds.put( player.getUniqueId(), bed );
     }
     
+    
     @EventHandler( priority = EventPriority.MONITOR, ignoreCancelled = true )
     public void onBreakingBeds( BlockBreakEvent event ) {
-        // removes beds that get broken from the hashmap. Priority = MONITOR to respect the block/grief protection plugins
+        // Removes beds that get broken from the hashmap. 
+        // Priority = MONITOR to respect the block/grief protection plugins
         
         Block block = event.getBlock();
         
@@ -125,43 +175,64 @@ public class BedHomes extends JavaPlugin implements Listener {
                     Player player = Bukkit.getPlayer( uuid );
                     
                     if ( player != null ) {
-                        player.sendMessage( "Your bed has been broken, /home will not work until you set another." );
+                        if ( brokenMsg == null )
+                            brokenMsg = String.join( "", 
+                                    ChatColor.RED.toString(), ChatColor.BOLD.toString(), "Your bed has been broken!",
+                                    ChatColor.RESET.toString(), " /home will not work until you use another." );
+                            
+                        player.sendMessage( brokenMsg );
                     }
                     if ( debug )
-                        logger.log( Level.INFO, String.join( "", "The Bed at ", block.toString(),
+                        logger.log( Level.INFO, String.join( "", "The Bed at ", block.getLocation().toString(),
                                  " belonging to ", Bukkit.getOfflinePlayer( uuid ).getName(), " has been broken." ) );
                     break;
                 }
             }
             if ( uuid != null ) beds.remove( uuid );
         }
-    }
-        
+    } 
+    
     @Override
     public boolean onCommand( CommandSender sender, Command cmd, String label, String[] args ) {
         
         if ( sender instanceof ConsoleCommandSender ) {
             sender.sendMessage( "This command is only available to players" );
-            return false;
         }
         
-        if ( sender instanceof Player && cmd.getName().equalsIgnoreCase( "bed" ) ) { 
+        if ( sender instanceof Player && cmd.getName().equalsIgnoreCase( "home" ) ) { 
             
             Player player = (Player) sender;
             Location myBed = getBedFor( player );
             
-            if ( myBed != null )
-                player.teleport( myBed, TeleportCause.COMMAND );
-            else 
-                player.sendMessage( "No bed location is saved for you.  Did you sleep in your bed yet?" );
-            
-                
-            // TODO add configurable warm up
-            // TODO add configurable cost
-            
-            return true;
+            if ( myBed == null ) {
+                player.sendMessage( 
+                        ChatColor.YELLOW.toString().concat( "No saved bed location for you.  Did you sleep in one yet?" ) );
+                return true;
+            }
+            if ( economy.getBalance( player ) < cost ) {
+                player.sendMessage( String.join( "", 
+                        ChatColor.YELLOW.toString(), "using /home costs ", 
+                        String.valueOf( cost ), economy.currencyNamePlural(), " each time you use it." ) );
+                return true;
+            }
+            warmups.put( player.getUniqueId(), 
+                         new DelayedTeleport( player, myBed ).runTaskLater( this, 20 * warmupDelay ) );
+            player.sendMessage( String.join( "", 
+                    ChatColor.RED.toString(), "Do Not Move for ", 
+                    String.valueOf( warmupDelay ), " seconds to return home." ) );         
         } 
-        return false; 
+        return true; 
+    }
+    
+    @EventHandler
+    public void warmupWatcher( PlayerMoveEvent event ) {
+        
+        UUID uuid = event.getPlayer().getUniqueId();
+        
+        if ( warmups.containsKey( uuid ) ) {
+            warmups.remove( uuid ).cancel();
+            event.getPlayer().sendMessage( "/home cancelled by movement." );
+        } 
     }
     
     private Location getBedFor( Player player ) {
@@ -173,5 +244,28 @@ public class BedHomes extends JavaPlugin implements Listener {
             beds.remove( uuid );
         
         return myBed;     
+    }
+    
+    private static class DelayedTeleport extends BukkitRunnable {
+        
+        private final Player p;
+        private final Location loc;
+        
+        DelayedTeleport( Player player, Location location ) {
+            p = player;
+            loc = location;
+        }
+        
+        @Override
+        public void run() {
+            warmups.remove( p.getUniqueId() );
+            
+            if ( economy.withdrawPlayer( p, cost ).transactionSuccess() )
+                p.teleport( loc, TeleportCause.COMMAND );
+            else
+                p.sendMessage( String.join( "", 
+                        ChatColor.YELLOW.toString(), "using /home costs ", 
+                        String.valueOf( cost ), economy.currencyNamePlural() ) );
+        }      
     }
 }

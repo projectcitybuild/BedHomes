@@ -2,7 +2,9 @@ name: BedHomes
 main: org.jabelpeeps.bedhomes.BedHomes
 version: ${project.version}
 author: Jabelpeeps
+softdepend: Vault
+
 commands:
-  bed:
-    description: Returns you to the last bed you used.
-    usage: /bed
+  home:
+    description: Returns you to the last bed you slept in.
+    usage: /home
