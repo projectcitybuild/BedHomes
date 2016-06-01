@@ -142,6 +142,7 @@ public class BedHomes extends JavaPlugin implements Listener {
     public void onUsingBed( PlayerBedEnterEvent event ) {
         // records the location where the player was standing when they clicked the bed
         // (which is assumed to be safe to return them to).
+        // sets that location as the API BedSpawnLocation, and also saves it to our own hashmap.
         
         Player player = event.getPlayer();
             
@@ -158,7 +159,7 @@ public class BedHomes extends JavaPlugin implements Listener {
     @EventHandler( priority = EventPriority.MONITOR, ignoreCancelled = true )
     public void onBreakingBeds( BlockBreakEvent event ) {
         // Removes beds that get broken from the hashmap. 
-        // Priority = MONITOR to respect the block/grief protection plugins
+        // Priority = MONITOR & ignoreCancelled = true, to respect block/grief protection plugins
         
         Block block = event.getBlock();
         
@@ -178,6 +179,7 @@ public class BedHomes extends JavaPlugin implements Listener {
                         if ( brokenMsg == null )
                             brokenMsg = String.join( "", 
                                     ChatColor.RED.toString(), ChatColor.BOLD.toString(), "Your bed has been broken!",
+                                    System.lineSeparator(),
                                     ChatColor.RESET.toString(), " /home will not work until you use another." );
                             
                         player.sendMessage( brokenMsg );
@@ -231,7 +233,9 @@ public class BedHomes extends JavaPlugin implements Listener {
         
         if ( warmups.containsKey( uuid ) ) {
             warmups.remove( uuid ).cancel();
-            event.getPlayer().sendMessage( "/home cancelled by movement." );
+            event.getPlayer().sendMessage( String.join( "", 
+                    ChatColor.RED.toString(), "Movement Detected!", System.lineSeparator(),
+                    ChatColor.RESET.toString(), "/home command cancelled." ) );
         } 
     }
     
