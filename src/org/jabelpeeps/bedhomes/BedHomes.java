@@ -39,9 +39,9 @@ import net.milkbowl.vault.economy.Economy;
 
 public class BedHomes extends JavaPlugin implements Listener {
 
-    private boolean debug = true;
+    boolean debug = true;
     Logger logger = getLogger();
-    public static Economy economy = null;
+    static Economy economy = null;
     
     // TODO maybe implement other databases/storage for the location data.   
     Map<UUID, Location> beds = new HashMap<>();
@@ -59,6 +59,9 @@ public class BedHomes extends JavaPlugin implements Listener {
     private final BukkitRunnable saveBeds = new BukkitRunnable() {
         @Override
         public void run() {
+            
+            if ( debug )
+                logger.log( Level.INFO, "Saving beds.yml" );
             
             for ( Entry<UUID, Location> each : beds.entrySet() ) {
                 saveData.createSection( each.getKey().toString(), each.getValue().serialize() );
@@ -94,7 +97,7 @@ public class BedHomes extends JavaPlugin implements Listener {
                                                     .getValues( false ) ) );
         }
         if ( !setupEconomy() ) 
-            logger.log( Level.WARNING, "Vault plugin not found, cost per command will not function.");
+            logger.log( Level.WARNING, "Vault +/- Economy plugins not found, cost per command will not function." );
         
         // saves the bed locations every 10 mins.
         saveBeds.runTaskTimerAsynchronously( this, 12000, 12000 );
