@@ -37,32 +37,28 @@ import org.bukkit.scheduler.BukkitTask;
 import net.milkbowl.vault.economy.Economy;
 
 
-public class BedHomes extends JavaPlugin implements Listener {
+public final class BedHomes extends JavaPlugin implements Listener {
 
-    boolean debug = true;
-    Logger logger = getLogger();
-    static Economy economy = null;
+    protected boolean debug = true;
+    protected Logger logger = getLogger();
+    protected static Economy economy = null;
     
     // TODO maybe implement other databases/storage for the location data.   
-    Map<UUID, Location> beds = new HashMap<>();
-    static Map<UUID, BukkitTask> warmups = new HashMap<>();
-    
-    private String logonMsg;
-    private String brokenMsg;
-    
+    protected Map<UUID, Location> beds = new HashMap<>();
+    protected static Map<UUID, BukkitTask> warmups = new HashMap<>();
+
+    protected String logonMsg;
+    private String brokenMsg;   
     private int warmupDelay;
-    static int cost;
+    protected static int cost;
     
-    File bedsYml;
-    FileConfiguration saveData;
+    protected File bedsYml;
+    protected FileConfiguration saveData;
     
     private final BukkitRunnable saveBeds = new BukkitRunnable() {
         @Override
         public void run() {
-            
-            if ( debug )
-                logger.log( Level.INFO, "Saving beds.yml" );
-            
+                
             for ( Entry<UUID, Location> each : beds.entrySet() ) {
                 saveData.createSection( each.getKey().toString(), each.getValue().serialize() );
             }
@@ -75,7 +71,7 @@ public class BedHomes extends JavaPlugin implements Listener {
             }
         }
     };
-     
+    
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -127,16 +123,21 @@ public class BedHomes extends JavaPlugin implements Listener {
         
         Player player = event.getPlayer();
         
+        if ( logonMsg == null )
+            logonMsg = String.join( "", 
+                    ChatColor.RED.toString(), ChatColor.BOLD.toString(), "IMPORTANT: ", System.lineSeparator(),
+                    ChatColor.RESET.toString(), "There is a new plugin providing /home, you need to ",
+                    ChatColor.RED.toString(), "sleep in your bed again", 
+                    ChatColor.RESET.toString(), " to re-link the command." );
+        
         if ( !beds.containsKey( player.getUniqueId() ) ) {
             
-            if ( logonMsg == null )
-                logonMsg = String.join( "", 
-                        ChatColor.RED.toString(), ChatColor.BOLD.toString(), "IMPORTANT: ", System.lineSeparator(),
-                        ChatColor.RESET.toString(), "There is a new plugin providing /home, you need to ",
-                        ChatColor.RED.toString(), "sleep in your bed again", 
-                        ChatColor.RESET.toString(), " to re-link the command." );
-            
-            player.sendMessage( logonMsg );
+            new BukkitRunnable() {                   
+                @Override
+                public void run() {
+                    player.sendMessage( logonMsg );
+                }        
+            }.runTaskLater( this, 100 );           
         }    
     }
     
@@ -222,9 +223,10 @@ public class BedHomes extends JavaPlugin implements Listener {
             }
             warmups.put( player.getUniqueId(), 
                          new DelayedTeleport( player, myBed ).runTaskLater( this, 20 * warmupDelay ) );
+            
             player.sendMessage( String.join( "", 
                     ChatColor.RED.toString(), "Do Not Move for ", 
-                    String.valueOf( warmupDelay ), " seconds to return home." ) );         
+                    String.valueOf( warmupDelay ), " seconds to teleport home." ) );         
         } 
         return true; 
     }
@@ -253,7 +255,7 @@ public class BedHomes extends JavaPlugin implements Listener {
         return myBed;     
     }
     
-    private static class DelayedTeleport extends BukkitRunnable {
+    private class DelayedTeleport extends BukkitRunnable {
         
         private final Player p;
         private final Location loc;
@@ -267,8 +269,12 @@ public class BedHomes extends JavaPlugin implements Listener {
         public void run() {
             warmups.remove( p.getUniqueId() );
             
-            if ( economy == null || economy.withdrawPlayer( p, cost ).transactionSuccess() )
+            if ( economy == null || economy.withdrawPlayer( p, cost ).transactionSuccess() ) {
                 p.teleport( loc, TeleportCause.COMMAND );
+                p.sendMessage( String.join( "", 
+                        ChatColor.YELLOW.toString(), "You have been charged ", 
+                        String.valueOf( cost ), economy.currencyNamePlural(), " for using /home." ) );
+            }
             else
                 p.sendMessage( String.join( "", 
                         ChatColor.YELLOW.toString(), "using /home costs ", 
