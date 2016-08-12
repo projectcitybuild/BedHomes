@@ -1,8 +1,30 @@
+
+debug: false
+#
+#
+# Change 'enabled:' to false to disable either command completely.
+#
 # Players need to remain unmoving for the duration of the warmup period, otherwise the teleport will be cancelled.
-# warmup is configured in whole seconds, set to 0 to disable
-warmup: 5
+# Warmups are configured in whole seconds, set to 0 to disable
+#
 # Setting of a cost per use requires the Vault plugin, and a supported Economy provider.
 # The cost configured here is the number of your server's main currency units that each use of /home will cost.
-# Players with insufficient funds will not teleport, and will get a message.
-# Set to 0 to disable.
-cost: 50
+# Players with insufficient funds will not teleport, and will get a message. Set to 0 to disable.
+#
+
+home:
+  enabled: true
+  warmup: 5
+  cost: 50
+spawn:
+  enabled: true
+  warmup: 5
+  cost: 50
+  world: world
+  
+ # The World named above is the world who's spawn the command will teleport players to.  This should be the same as 
+ # the name of the world's folder in the server's root folder.
+ # Use 'current' to teleport players to the spawn of the world they are currently in.
+ 
+
+ 

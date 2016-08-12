@@ -8,3 +8,6 @@ commands:
   home:
     description: Returns you to the last bed you slept in.
     usage: /home
+  spawn:
+    description: Teleports you to the world spawn point.
+    usage: /spawn
