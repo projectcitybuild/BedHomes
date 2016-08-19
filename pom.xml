@@ -3,7 +3,7 @@
   	<groupId>org.jabelpeeps</groupId>
   	<artifactId>BedHomes</artifactId>
 	<packaging>jar</packaging>
-  	<version>0.2.build#${env.BUILD_NUMBER}</version>
+  	<version>0.3-#${env.BUILD_NUMBER}</version>
   	<description>provide a simple /bed command</description>
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,6 +33,12 @@
 			<artifactId>VaultAPI</artifactId>
 			<version>1.5</version>
 			<scope>provided</scope>
+			<exclusions>
+			     <exclusion>
+			         <groupId>org.bukkit</groupId>
+			         <artifactId>bukkit</artifactId>
+			     </exclusion>
+			</exclusions>
 		</dependency>
  	</dependencies>
  	
