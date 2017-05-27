@@ -27,7 +27,18 @@
 			<version>LATEST</version>
 			<type>jar</type>
 			<scope>provided</scope>
+			<exclusions>
+                <exclusion>    
+                    <groupId>net.md-5</groupId>
+                    <artifactId>bungeecord-chat</artifactId>
+                </exclusion>
+                <exclusion>
+				    <groupId>junit</groupId>
+				    <artifactId>junit</artifactId>                
+                </exclusion>			
+			</exclusions>
 		</dependency>
+		
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>
 			<artifactId>VaultAPI</artifactId>

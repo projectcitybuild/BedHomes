@@ -254,7 +254,7 @@ public final class BedHomes extends JavaPlugin implements Listener {
     
     private void checkEconAndTeleport( Player player, Location loc, String cmd, int cost, int delay ) {
         
-        if ( economy != null ) {
+        if ( economy != null & cost != 0 ) {
             player.sendMessage( String.join( "",  ChatColor.YELLOW.toString(), "using /", cmd, " costs ", 
                     String.valueOf( cost ), economy.currencyNamePlural(), " each time you use it." ) );
             
@@ -311,7 +311,7 @@ public final class BedHomes extends JavaPlugin implements Listener {
             if ( economy == null || economy.withdrawPlayer( p, homeCost ).transactionSuccess() ) {
                 p.teleport( loc, TeleportCause.COMMAND );
                 
-                if ( economy != null )
+                if ( economy != null & cost != 0 )
                     p.sendMessage( String.join( "", ChatColor.YELLOW.toString(), "You have been charged ", 
                         String.valueOf( cost ), economy.currencyNamePlural() ) );
             }
