@@ -212,7 +212,7 @@ public final class BedHomes extends JavaPlugin implements Listener {
         Player player = (Player) sender;
         String command = cmd.getName();
         
-        if ( homeEnabled && command.equalsIgnoreCase( "home" ) ) { 
+        if ( homeEnabled && command.equalsIgnoreCase( "bed" ) ) {
 
             if (!player.hasPermission("bedhomes.teleport")) {
                 return false;
