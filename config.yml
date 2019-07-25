@@ -16,11 +16,6 @@ home:
   enabled: true
   warmup: 5
   cost: 50
-spawn:
-  enabled: true
-  warmup: 5
-  cost: 50
-  world: world
   
  # The World named above is the world who's spawn the command will teleport players to.  This should be the same as 
  # the name of the world's folder in the server's root folder.

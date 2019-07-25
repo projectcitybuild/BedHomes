@@ -6,8 +6,5 @@ softdepend: [Vault]
 
 commands:
   home:
-    description: Returns you to the last bed you slept in.
+    description: Returns you to your Survival bed.
     usage: /home
-  spawn:
-    description: Teleports you to the world spawn point.
-    usage: /spawn

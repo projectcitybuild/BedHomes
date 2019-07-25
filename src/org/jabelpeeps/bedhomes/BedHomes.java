@@ -86,12 +86,6 @@ public final class BedHomes extends JavaPlugin implements Listener {
         homeCost = homeSection.getInt( "cost" );
         homeEnabled = homeSection.getBoolean( "enabled" );
         
-        ConfigurationSection spawnSection = config.getConfigurationSection( "spawn" );
-        spawnWarmupDelay = spawnSection.getInt( "warmup" );
-        spawnCost = spawnSection.getInt( "cost" );
-        spawnEnabled = spawnSection.getBoolean( "enabled" );
-        spawnWorld = spawnSection.getString( "world" );
-        
         bedsYml = new File( getDataFolder(), "beds.yml" );
         saveData = YamlConfiguration.loadConfiguration( bedsYml );
         
@@ -109,14 +103,6 @@ public final class BedHomes extends JavaPlugin implements Listener {
                
         // saves the bed locations every 10 mins.
         saveBeds.runTaskTimerAsynchronously( this, 12000, 12000 );
-        
-        // check that the configured world for the spawn command is valid.
-        if ( spawnEnabled && Bukkit.getWorld( spawnWorld ) == null 
-                                && !spawnWorld.equalsIgnoreCase( "current" ) ) {
-            
-            logger.log( Level.WARNING, "The configured spawn world '" + spawnWorld + "' was not found. /spawn disabled." );
-            spawnEnabled = false;          
-        }          
     }
     
     private boolean setupEconomy() {
