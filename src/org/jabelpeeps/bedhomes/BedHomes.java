@@ -1,19 +1,11 @@
 package org.jabelpeeps.bedhomes;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.Bed;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -25,7 +17,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -33,7 +24,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import net.milkbowl.vault.economy.Economy;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public final class BedHomes extends JavaPlugin implements Listener {
@@ -139,26 +137,6 @@ public final class BedHomes extends JavaPlugin implements Listener {
         saveBeds.run();          
     }
     
-    @EventHandler
-    public void onPlayerJoining( PlayerJoinEvent event ) {
-        // sends a message to players telling them to set their beds in the new plugin.
-        
-        Player player = event.getPlayer();
-                
-        if ( logonMsg == null )
-            logonMsg = String.join( "", 
-                    ChatColor.RED.toString(), ChatColor.BOLD.toString(), "IMPORTANT: ", System.lineSeparator(),
-                    ChatColor.RESET.toString(), "There is a new plugin providing /home, you need to ",
-                    ChatColor.RED.toString(), "sleep in your bed again", 
-                    ChatColor.RESET.toString(), " to re-link the command." );
-        
-        if ( !beds.containsKey( player.getUniqueId() ) ) {
-            
-            Bukkit.getScheduler().runTaskLater( this, () -> player.sendMessage( logonMsg ), 100 );   
-        }
-    }
-    
-    
     @EventHandler( priority = EventPriority.MONITOR, ignoreCancelled = true )
     public void onUsingBed( PlayerBedEnterEvent event ) {
         // records the location where the player was standing when they clicked the bed
@@ -166,6 +144,10 @@ public final class BedHomes extends JavaPlugin implements Listener {
         // Sets that location as the API BedSpawnLocation, and also saves it to our own hashmap.
         
         Player player = event.getPlayer();
+
+        if (!player.hasPermission("bedhomes.set")) {
+            return;
+        }
             
         if ( debug ) 
             logger.log( Level.INFO, "Player " + player.getName() + " is using a bed, at time:- " 
@@ -184,7 +166,11 @@ public final class BedHomes extends JavaPlugin implements Listener {
         
         Block block = event.getBlock();
         
-        if ( block.getType() == Material.BED_BLOCK ) {
+        if ( block.getBlockData() instanceof Bed) {
+
+            if (!event.getPlayer().hasPermission("bedhomes.set")) {
+                return;
+            }
             
             UUID uuid = null; 
             
@@ -193,15 +179,15 @@ public final class BedHomes extends JavaPlugin implements Listener {
                 if ( block.getLocation().distanceSquared( each.getValue() ) < 5 ) {
                     
                     uuid = each.getKey();
-                    
+
                     Player player = Bukkit.getPlayer( uuid );
-                    
+
                     if ( player != null ) {
                         if ( brokenMsg == null )
                             brokenMsg = String.join( "", 
                                     ChatColor.RED.toString(), ChatColor.BOLD.toString(), "Your bed has been broken!",
                                     System.lineSeparator(),
-                                    ChatColor.RESET.toString(), " /home will not work until you use another." );
+                                    ChatColor.RESET.toString(), " /bed will not work until you use another." );
                             
                         player.sendMessage( brokenMsg );
                     }
@@ -227,7 +213,11 @@ public final class BedHomes extends JavaPlugin implements Listener {
         String command = cmd.getName();
         
         if ( homeEnabled && command.equalsIgnoreCase( "home" ) ) { 
-            
+
+            if (!player.hasPermission("bedhomes.teleport")) {
+                return false;
+            }
+
             Location myBed = getBedFor( player );
             
             if ( myBed == null ) {
@@ -237,17 +227,6 @@ public final class BedHomes extends JavaPlugin implements Listener {
             }
             checkEconAndTeleport( player, myBed, command, homeCost, homeWarmupDelay );  
             
-        }         
-        else if ( spawnEnabled && command.equalsIgnoreCase( "spawn" ) ) {
-            
-            Location spawn = null;
-            
-            if ( spawnWorld.equalsIgnoreCase( "current" ) ) 
-                spawn = player.getWorld().getSpawnLocation();
-            else 
-                spawn = Bukkit.getWorld( spawnWorld ).getSpawnLocation();
-                       
-            checkEconAndTeleport( player, spawn, command, spawnCost, spawnWarmupDelay );            
         }
         return true; 
     }

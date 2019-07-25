@@ -3,7 +3,7 @@
   	<groupId>org.jabelpeeps</groupId>
   	<artifactId>BedHomes</artifactId>
 	<packaging>jar</packaging>
-  	<version>0.3-#${env.BUILD_NUMBER}</version>
+  	<version>alpha-1</version>
   	<description>provide a simple /bed command</description>
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,9 +14,9 @@
   			<id>spigot-repo</id>
 			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
   		</repository>
-  		<repository>
-			<id>vault-repo</id>
-			<url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
   	</repositories>
   	
@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.12-R0.1-SNAPSHOT</version>
+			<version>1.14.4-R0.1-SNAPSHOT</version>
 	        <type>jar</type>
 			<scope>provided</scope>
 			<exclusions>
@@ -40,9 +40,9 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>net.milkbowl.vault</groupId>
+			<groupId>com.github.MilkBowl</groupId>
 			<artifactId>VaultAPI</artifactId>
-			<version>1.5</version>
+			<version>1.7</version>
 			<scope>provided</scope>
 			<exclusions>
 			     <exclusion>
