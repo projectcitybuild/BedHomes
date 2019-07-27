@@ -7,4 +7,4 @@ softdepend: [Vault]
 commands:
   home:
     description: Returns you to your Survival bed.
-    usage: /home
+    usage: /bed
